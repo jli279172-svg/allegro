@@ -28,8 +28,6 @@ API
 
 .. autofunction:: allegro.model.AllegroModel
 
-.. autofunction:: allegro.model.AllegroEnergyModel
-
 .. autofunction:: allegro.nn.TwoBodyBesselScalarEmbed
 
 .. autoclass:: allegro.nn.TwoBodySplineScalarEmbed

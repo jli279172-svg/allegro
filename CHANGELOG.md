@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Most recent change on the bottom.
 
 
+## [Unreleased]
+
+## [0.8.0]
+
+### Removed
+- [Breaking] `AllegroEnergyModel` has been removed. Energy-only models can be constructed by using `AllegroModel` with `do_derivatives=False`
+
 ## [0.7.1]
 
 ### Fixed
