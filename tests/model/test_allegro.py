@@ -1,7 +1,8 @@
 import pytest
 import torch
 import copy
-from nequip.utils.unittests.model_tests import BaseEnergyModelTests
+from nequip.utils.unittests.model_tests_lammps import LAMMPSMLIAPIntegrationMixin
+from nequip.utils.unittests.model_tests_torchsim import TorchSimIntegrationMixin
 from nequip.utils.versions import _TORCH_GE_2_6
 
 _TRITON_INSTALLED = False
@@ -64,7 +65,7 @@ SPLINE_CONFIG = {
 }
 
 
-class TestAllegro(BaseEnergyModelTests):
+class TestAllegro(TorchSimIntegrationMixin, LAMMPSMLIAPIntegrationMixin):
     @pytest.fixture
     def strict_locality(self):
         return True
