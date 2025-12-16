@@ -138,5 +138,4 @@ class CuEquivarianceContracter(Contracter):
                 .contiguous()
             )
         else:
-            x2 = torch.index_select(x2_scatter, 0, idxs)
-            return self._contract(x1, x2)
+            return self._contract_conv(x1, x2_scatter, idxs)
