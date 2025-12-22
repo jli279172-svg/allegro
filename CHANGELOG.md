@@ -9,6 +9,12 @@ Most recent change on the bottom.
 
 ## [Unreleased]
 
+
+## [0.8.1]
+
+### Fixed
+- https://github.com/mir-group/allegro/issues/138
+
 ## [0.8.0]
 
 ### Removed
