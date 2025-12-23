@@ -1,0 +1,133 @@
+# yamllint disable rule:line-length
+# GPU训练配置文件 - dataset_1593.xyz (水分子数据集)
+run: [train, test]
+
+cutoff_radius: 5.0
+model_type_names: [H, O]
+chemical_species: ${model_type_names}
+
+data:
+  _target_: nequip.data.datamodule.ASEDataModule
+  seed: 123
+  split_dataset:
+    - file_path: ./nequip_data/ab-initio-thermodynamics-of-water-master/training-set/dataset_1593.xyz
+      train: 1200
+      val: 200
+      test: 193
+  transforms:
+    - _target_: nequip.data.transforms.ChemicalSpeciesToAtomTypeMapper
+      model_type_names: ${model_type_names}
+    - _target_: nequip.data.transforms.NeighborListTransform
+      r_max: ${cutoff_radius}
+  ase_args:
+    format: extxyz
+  key_mapping:
+    TotEnergy: total_energy  # 将 TotEnergy 映射到 nequip 的 total_energy 字段
+    force: forces  # 将 force (单数) 映射到 nequip 的 forces (复数) 字段
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: 8  # GPU训练：可以使用更大的batch size
+    num_workers: 4  # GPU训练：减少CPU workers，让GPU成为瓶颈
+    pin_memory: true  # GPU训练：启用pin_memory以加速数据传输
+  val_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: 16  # 验证时可以用更大的batch size
+    num_workers: 4
+    pin_memory: true
+  test_dataloader: ${data.val_dataloader}
+  stats_manager:
+    _target_: nequip.data.CommonDataStatisticsManager
+    type_names: ${model_type_names}
+
+trainer:
+  _target_: lightning.Trainer
+  max_epochs: 100
+  log_every_n_steps: 10
+  accelerator: gpu  # 使用GPU
+  devices: 1  # 使用1个GPU设备
+  enable_progress_bar: true  # 显示进度条
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      dirpath: ${hydra:runtime.output_dir}
+      save_last: true
+      save_top_k: 1  # 保存最佳模型（验证损失最小的）
+      monitor: val0_epoch/weighted_sum  # 监控验证加权损失（NequIP使用的指标名称）
+      mode: min  # 保存验证损失最小的模型
+      filename: best  # 最佳模型文件名（将保存为 best.ckpt）
+
+# NOTE: interpolation parameters for Allegro model
+# GPU训练优化：可以使用更大的模型参数
+num_scalar_features: 64  # GPU训练可以使用更大的特征数
+
+training_module:
+  _target_: nequip.train.EMALightningModule
+  loss:
+    _target_: nequip.train.EnergyForceLoss
+    per_atom_energy: true
+    coeffs:
+      total_energy: 1.0
+      forces: 1.0
+  val_metrics:
+    _target_: nequip.train.EnergyForceMetrics
+    coeffs:
+      per_atom_energy_mae: 1.0
+      forces_mae: 1.0
+  test_metrics: ${training_module.val_metrics}
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 0.001
+  # ^ IMPORTANT: Allegro models do better with learning rates around 1e-3
+
+  model:
+    _target_: allegro.model.AllegroModel
+
+    # GPU训练：如果PyTorch >= 2.6.0，可以使用torch.compile加速
+    # compile_mode: compile  # 取消注释以启用编译加速（需要PyTorch >= 2.6.0）
+
+    # === basic model params ===
+    seed: 456
+    model_dtype: float32
+    type_names: ${model_type_names}
+    r_max: ${cutoff_radius}
+
+    # === two-body scalar embedding ===
+    radial_chemical_embed:
+      _target_: allegro.nn.TwoBodyBesselScalarEmbed
+      num_bessels: 8
+      bessel_trainable: false
+      polynomial_cutoff_p: 6
+
+    radial_chemical_embed_dim: ${num_scalar_features}
+
+    # scalar embedding MLP
+    scalar_embed_mlp_hidden_layers_depth: 1
+    scalar_embed_mlp_hidden_layers_width: ${num_scalar_features}
+    scalar_embed_mlp_nonlinearity: silu
+
+    # === core hyperparameters ===
+    l_max: 1  # GPU训练可以使用l_max=2获得更高精度，但l_max=1更快
+    num_layers: 2
+    num_scalar_features: ${num_scalar_features}
+    num_tensor_features: 32  # GPU训练可以使用更大的张量特征数
+
+    # == allegro MLPs ==
+    allegro_mlp_hidden_layers_depth: 1
+    allegro_mlp_hidden_layers_width: ${num_scalar_features}
+    allegro_mlp_nonlinearity: silu
+
+    # === advanced hyperparameters ===
+    parity: true
+    tp_path_channel_coupling: true
+
+    # == readout MLP ==
+    readout_mlp_hidden_layers_depth: 1
+    readout_mlp_hidden_layers_width: ${num_scalar_features}
+    readout_mlp_nonlinearity: silu
+
+    # === misc hyperparameters ===
+    avg_num_neighbors: ${training_data_stats:num_neighbors_mean}
+    per_type_energy_shifts: ${training_data_stats:per_atom_energy_mean}
+    per_type_energy_scales: ${training_data_stats:forces_rms}
+    per_type_energy_scales_trainable: false
+    per_type_energy_shifts_trainable: false
+
