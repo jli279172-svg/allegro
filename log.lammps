@@ -1,0 +1,4 @@
+LAMMPS (22 Jul 2025)
+package status
+ERROR: Unknown package keyword: status (src/input.cpp:1735)
+Last input line: package status
