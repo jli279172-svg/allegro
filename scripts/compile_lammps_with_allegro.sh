@@ -213,9 +213,9 @@ if [ -f "${CHECK_VERSION_SCRIPT}" ]; then
     else
         # Try default checkpoint locations
         DEFAULT_CHECKPOINTS=(
-            "${SCRIPT_DIR}/../outputs/2025-12-23/10-46-15/best.ckpt"
-            "${SCRIPT_DIR}/../outputs/2025-12-23/10-46-15/last.ckpt"
-            "${HOME}/coding/allegro/outputs/2025-12-23/10-46-15/best.ckpt"
+            "${SCRIPT_DIR}/../experiments/outputs/2025-12-23/10-46-15/best.ckpt"
+            "${SCRIPT_DIR}/../experiments/outputs/2025-12-23/10-46-15/last.ckpt"
+            "${HOME}/coding/allegro/experiments/outputs/2025-12-23/10-46-15/best.ckpt"
         )
         
         for ckpt in "${DEFAULT_CHECKPOINTS[@]}"; do

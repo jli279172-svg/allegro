@@ -5,7 +5,7 @@ benchmark_data/
 .idea/
 results/
 aspirin_data/
-lightning_logs/
+logs/
 outputs/
 
 # Byte-compiled / optimized / DLL files
@@ -70,6 +70,19 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.temp
+*.old
+*.bak
+*.swp
+*.zip
 
 # Flask stuff:
 instance/

@@ -4,8 +4,8 @@
 set -euo pipefail
 
 ROOT="/Users/lijunchen/coding/allegro"
-DEFAULT_CKPT="$ROOT/outputs/2025-12-23/10-46-15/best.ckpt"
-DEFAULT_OUT="$ROOT/outputs/2025-12-23/10-46-15/lammps_allegro.nequip.pt2"
+DEFAULT_CKPT="$ROOT/experiments/outputs/2025-12-23/10-46-15/best.ckpt"
+DEFAULT_OUT="$ROOT/experiments/outputs/2025-12-23/10-46-15/lammps_allegro.nequip.pt2"
 
 CKPT_PATH="${1:-$DEFAULT_CKPT}"
 OUT_PATH="${2:-$DEFAULT_OUT}"
